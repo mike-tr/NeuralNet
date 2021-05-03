@@ -43,7 +43,7 @@ from NeuralNet import NeuralNetwork <br>
 // network that 2 inputs and 2 outputs, 2 hidden layers of size 8 and 4. <br>
 network = NeuralNetwork(layers = [3, 8, 4, 2], learning_rate = 0.2, momentum = 0.5) <br>
 
-data = some_data() // get some data <br>
+data = some_data() // get some data ( expects np.array )<br>
 ## example of data, Y1 = exactly 1 input is 1, Y2 = exactly 2 inputs is 1.
 | A | B | C | | Y1 | Y2 |
 |:---:|:---:|:---:|:---:|:---:|:---:|
@@ -56,35 +56,35 @@ data = some_data() // get some data <br>
 | 1 | 1 | 0 || 0 | 1 |
 | 1 | 1 | 1 || 0 | 0 |
 
-### Seperation
+### Seperate to input and output.
 x_data = data[:, :-2]
 y_data = data[:, -2:]
 
-## train
+## Train
 for i in range(iterations):
   network.train(x_data, y_data)
   
-## predictions
+## Predict
 network.predict(x_data)
 
 predicted : <br>
- [[0.02470556 0.02210182] <br>
+ [0.02470556 0.02210182] <br>
  [0.97892623 0.00002558] <br>
  [0.97892575 0.00002489] <br> 
  [0.00000639 0.98381658] <br>
  [0.98224752 0.00002111] <br>
  [0.00000734 0.98049643] <br>
  [0.0000073  0.98155121] <br>
- [0.02406604 0.02782214]] <br>
+ [0.02406604 0.02782214] <br>
  
  actual :
- [[0 0]
+ [0 0]
  [1 0]
  [1 0]
  [0 1]
  [1 0]
  [0 1]
  [0 1]
- [0 0]]
+ [0 0]
 
 
