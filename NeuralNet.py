@@ -2,6 +2,8 @@ from numpy import ndarray
 import numpy as np
 import math
 
+from numpy.lib.function_base import gradient
+
 
 def sigmoid(x):
     try:
@@ -21,11 +23,14 @@ dsigmoid_v = np.vectorize(dSigmoid)
 
 
 class NeuralNetwork:
-    def __init__(self, layers: ndarray, learning_rate=0.1):
+    def __init__(self, layers: ndarray, learning_rate=0.2, momentum=0.5):
         """
         Layers : at index 0, expects the number of inputs ( excluding bias )
         other-layers : are the hidden layers and the number of neurons.
         Last-layer : number of outputs.
+
+        Network implementing learning rate that is adjusting if the error is low!
+        so we can put a high learning rate and when the net almost converged it will adjust it self to small jumps.
 
         """
         self.num_layers = len(layers) - 1
@@ -35,9 +40,25 @@ class NeuralNetwork:
         self.output = {}
         self.output_in = {}
         self.learning_rate = learning_rate
+        self.trained = 1000
+        self.err1000 = 1000
+        self.alpha = 1
+        self.momentum = momentum
+
+        self.gradient = {}
+        self.gradient_bias = {}
         for i in range(self.num_layers):
+            self.gradient[i] = 0
+            self.gradient_bias[i] = 0
             self.weights[i] = np.random.rand(layers[i], layers[i+1])
             self.biases[i] = np.random.rand(layers[i+1], 1)
+
+    def copy(self):
+        c = NeuralNetwork(self.layers, self.learning_rate, self.momentum)
+        for i in range(self.num_layers):
+            c.weights[i] = self.weights[i].copy()
+            c.biases[i] = self.biases[i].copy()
+        return c
 
     def predict(self, X: ndarray):
         """
@@ -80,10 +101,21 @@ class NeuralNetwork:
             return
 
         prediction = self.output[self.num_layers]
+
         if(len(Y.shape) == 1):
             Y = Y.reshape(1, -1)
-        # print(Y)
+        _size = Y.shape[0]
         Y = Y.T
+
+        error = np.square(Y - prediction).sum()
+        self.trained += _size
+
+        p = _size / 1000
+        self.err1000 = error + self.err1000 * (1 - p)
+        self.alpha = 1
+        if self.err1000 < 33:
+            self.alpha = (self.err1000 / 100) ** 0.2 + 0.2
+        self.alpha /= math.sqrt(_size)
 
         delta = {}
         delta[self.num_layers] = (Y - prediction) * \
@@ -94,8 +126,24 @@ class NeuralNetwork:
             delta[i] = self.weights[i] @ delta[i + 1]
             delta[i] = delta[i] * dsigmoid_v(self.output_in[i])
 
+        binc = np.ones((1, _size))
         for i in range(self.num_layers):
-            gradient = (self.output[i] @ delta[i + 1].T)
-            self.weights[i] += self.learning_rate * gradient
+            oldg = self.gradient[i]
+            oldgb = self.gradient_bias[i]
 
-        return np.square(Y - prediction).sum()  # Error
+            # calculate new gradient
+            self.gradient[i] = (self.output[i] @ delta[i + 1].T)
+            self.gradient_bias[i] = (delta[i + 1] @ binc.T)
+
+            self.gradient[i] *= self.alpha * self.learning_rate
+            self.gradient_bias[i] *= self.alpha * self.learning_rate
+
+            # add old gradient as "momentum"
+            self.gradient[i] += self.momentum * oldg
+            self.gradient_bias[i] += self.momentum * oldgb
+
+            # print(delta[i + 1], binc, gradient_bias)
+            self.weights[i] += self.gradient[i]
+            self.biases[i] += self.gradient_bias[i]
+
+        return error / _size  # Error
