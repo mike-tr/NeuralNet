@@ -9,7 +9,7 @@ def create_data(_f, _size, _maxn, _maxm):
     return random sample of size : _size
     """
     fdata = []
-    for i in range(_size):
+    for _ in range(_size):
         n = (int)(np.random.random() * 2 * _maxn) - _maxn
         m = (int)(np.random.random() * 2 * _maxm) - _maxm
 
@@ -83,13 +83,40 @@ def calculate_accuracity(net: NeuralNetwork, X, Y):
     return acc
 
 
-def plot_test(net: NeuralNetwork, X, title, ax=None, s=20):
+def plot_diff_inner(predictions, X, Y, title, ax=None, s=20):
     if ax is None:
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
+        _, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
 
     plt.subplot(ax)
 
+    diff = np.abs(Y - predictions)
+    positive = diff < 0.5
+    negative = diff >= 0.5
+
+    neg_g = plt.scatter(X[:, :1][negative], X[:, 1:]
+                        [negative], c='brown', s=s, alpha=0.8, cmap='Accent')
+    pos_g = plt.scatter(X[:, :1][positive], X[:, 1:]
+                        [positive], c='green', s=s, alpha=0.8, cmap='Accent')
+
+    ax.title.set_text(title)
+    plt.legend((neg_g, pos_g), ("Wrongly classified",
+                                "Correctly classified"), loc='lower left')
+
+    plt.ylim(-1, 1)
+    plt.xlim(-1, 1)
+    return ax
+
+
+def plot_diff(net: NeuralNetwork, X, Y, title, ax=None, s=20):
     predictions = net.predict(X)
+    return plot_diff_inner(predictions, X, Y, title, ax, s)
+
+
+def plot_test_inner(predictions, X, title, ax=None, s=20):
+    if ax is None:
+        _, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
+
+    plt.subplot(ax)
 
     positive = predictions > 0.5
     negative = predictions <= 0.5
@@ -106,6 +133,11 @@ def plot_test(net: NeuralNetwork, X, title, ax=None, s=20):
     plt.ylim(-1, 1)
     plt.xlim(-1, 1)
     return ax
+
+
+def plot_test(net: NeuralNetwork, X, title, ax=None, s=20):
+    predictions = net.predict(X)
+    return plot_test_inner(predictions, X, title, ax, s)
 
 
 # def run_just_test(_n, test_data):
