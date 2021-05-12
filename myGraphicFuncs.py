@@ -70,9 +70,11 @@ def generate_uniform_dataset(_f, _size, data_positive=None, data_negative=None):
     return np.concatenate((data_negative[random_negative], data_positive[random_positive]), axis=0)
 
 
-def plot_data(X, y):
-    plt.figure(figsize=(6, 6))
-    plt.scatter(X[:, :1], X[:, 1:2], c=y, s=30, cmap='Accent')
+def plot_data(X, y, ax=None):
+    if(ax == None):
+        ax = plt
+        ax.figure(figsize=(6, 6))
+    ax.scatter(X[:, :1], X[:, 1:2], c=y, s=30, cmap='Accent')
 
 
 def calculate_accuracity(net: NeuralNetwork, X, Y):

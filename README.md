@@ -88,3 +88,19 @@ predicted : <br>
  [0 0]
 
 
+## Convert jupyter to HTML
+jupyter nbconvert --to html QuestionA.ipynb 
+
+
+@media all {
+.page-break { display: none; }
+}
+
+@media print {
+.page-break { display: block; page-break-before: always; }
+}
+
+.page-break {
+    page-break-after: always;
+}
+
